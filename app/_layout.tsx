@@ -1,29 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Home from "./home";
+import Features from "./features";
+import Pricing from "./pricing";
+import Resources from "./resources";
+import URLs from "./urls";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const Tabs = createBottomTabNavigator();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    return (
+        <NavigationContainer>
+            <Tab.Navigator screenOptions={{ headerShown: false}}>
+                <Tab.Screen name="Home" component={Home}>
+                <Tab.Screen name="Features" component={Features}>
+                <Tab.Screen name="Resources" component={Resources}>
+                <Tab.Screen name="Pricing" component={Pricing}>
+                <Tab.Screen name="Saved URLs" component={URLs}>
+            </Tab.Navigator>
+        </NavigationContainer>
+    )
 }
