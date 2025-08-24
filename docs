@@ -1,0 +1,608 @@
+Type checking with TypeScript
+React Navigation can be configured to type-check screens and their params, as well as various other APIs using TypeScript. This provides better intelliSense and type safety when working with React Navigation.
+
+First, make sure you have the following configuration in your tsconfig.json under compilerOptions:
+
+strict: true or strictNullChecks: true - Necessary for intelliSense and type inference to work correctly.
+moduleResolution: "bundler" - Necessary to resolve the types correctly and match the behavior of Metro and other bundlers.
+Static
+Dynamic
+There are 2 steps to configure TypeScript with the static API:
+
+Each screen component needs to specify the type of the route.params prop that it accepts. The StaticScreenProps type makes it simpler:
+
+import type { StaticScreenProps } from '@react-navigation/native';
+
+type Props = StaticScreenProps<{
+  username: string;
+}>;
+
+function ProfileScreen({ route }: Props) {
+  // ...
+}
+
+Generate the ParamList type for the root navigator and specify it as the default type for the RootParamList type:
+
+import type { StaticParamList } from '@react-navigation/native';
+
+const HomeTabs = createBottomTabNavigator({
+  screens: {
+    Feed: FeedScreen,
+    Profile: ProfileScreen,
+  },
+});
+
+const RootStack = createNativeStackNavigator({
+  screens: {
+    Home: HomeTabs,
+  },
+});
+
+type RootStackParamList = StaticParamList<typeof RootStack>;
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
+
+This is needed to type-check the useNavigation hook.
+
+Navigator specific types
+Generally, we recommend using the default types for the useNavigation prop to access the navigation object in a navigator-agnostic manner. However, if you need to use navigator-specific APIs, e.g. setOptions to update navigator options, push, pop, popTo etc. with stacks, openDrawer, closeDrawer etc. with drawer and so on, you need to manually annotate useNavigation:
+
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+
+type BottomTabParamList = StaticParamList<typeof BottomTabNavigator>;
+type ProfileScreenNavigationProp = BottomTabNavigationProp<
+  BottomTabParamList,
+  'Profile'
+>;
+
+// ...
+
+const navigation = useNavigation<ProfileScreenNavigationProp>();
+
+
+Similarly, you can import NativeStackNavigationProp from @react-navigation/native-stack, StackNavigationProp from @react-navigation/stack, DrawerNavigationProp from @react-navigation/drawer etc.
+
+
+
+
+
+
+
+
+
+Opening a modal
+Modal shown on screen
+
+A modal displays content that temporarily blocks interactions with the main view.
+
+A modal is like a popup — it usually has a different transition animation, and is intended to focus on one particular interaction or piece of content.
+
+Creating a stack with modal screens
+Static
+Dynamic
+function HomeScreen() {
+    const navigation = useNavigation();
+
+    return (
+        <View style= {{ flex: 1, alignItems: 'center', justifyContent: 'center' }
+}>
+    <Text style={ { fontSize: 30 } }> This is the home screen! </Text>
+        < Button onPress = {() => navigation.navigate('MyModal')}> Open Modal </Button>
+            </View>
+  );
+}
+
+function ModalScreen() {
+    const navigation = useNavigation();
+
+    return (
+        <View style= {{ flex: 1, alignItems: 'center', justifyContent: 'center' }
+}>
+    <Text style={ { fontSize: 30 } }> This is a modal! </Text>
+        < Button onPress = {() => navigation.goBack()}> Dismiss </Button>
+            </View>
+  );
+}
+
+function DetailsScreen() {
+    return (
+        <View>
+        <Text>Details </Text>
+        </View>
+    );
+}
+
+const HomeStack = createStackNavigator({
+    screens: {
+        Home: {
+            screen: HomeScreen,
+            options: {
+                headerShown: false,
+            },
+        },
+        Details: {
+            screen: DetailsScreen,
+            options: {
+                headerShown: false,
+            },
+        },
+    },
+});
+
+const RootStack = createStackNavigator({
+    groups: {
+        Home: {
+            screens: {
+                App: {
+                    screen: HomeStack,
+                    options: { title: 'My App' },
+                },
+            },
+        },
+        Modal: {
+            screenOptions: {
+                presentation: 'modal',
+            },
+            screens: {
+                MyModal: ModalScreen,
+            },
+        },
+    },
+});
+
+const Navigation = createStaticNavigation(RootStack);
+
+export default function App() {
+    return <Navigation />;
+}
+
+Try on Snack
+Here, we are creating 2 groups of screens using the RootStack.Group component.The first group is for our regular screens, and the second group is for our modal screens.For the modal group, we have specified presentation: 'modal' in screenOptions.This will apply this option to all the screens inside the group.This option will change the animation for the screens to animate from bottom - to - top rather than right to left.The presentation option for stack navigator can be either card(default ) or modal.The modal behavior slides the screen in from the bottom and allows the user to swipe down from the top to dismiss it on iOS.
+
+Instead of specifying this option for a group, it's also possible to specify it for a single screen using the options prop on RootStack.Screen.
+
+Summary
+To change the type of transition on a stack navigator you can use the presentation option.
+When presentation is set to modal, the screens behave like a modal, i.e.they have a bottom to top transition and may show part of the previous screen in the background.
+Setting presentation: 'modal' on a group makes all the screens in the group modals, so to use non - modal transitions on other screens, we add another group with the default configuration.
+Best practices
+Since modals are intended to be on top of other content, there are a couple of things to keep in mind when using modals:
+
+    Avoid nesting them inside other navigators like tab or drawer.Modal screens should be defined as part of the root stack.
+Modal screens should be the last in the stack - avoid pushing regular screens on top of modals.
+The first screen in a stack appears as a regular screen even if configured as a modal, since there is no screen before it to show behind.So always make sure that modal screens are pushed on top of a regular screen or another modal screen.
+
+
+
+
+
+
+
+
+
+
+Authentication flows
+Most apps require that a user authenticates in some way to have access to data associated with a user or other private content.Typically the flow will look like this:
+
+The user opens the app.
+The app loads some authentication state from encrypted persistent storage(for example, SecureStore).
+When the state has loaded, the user is presented with either authentication screens or the main app, depending on whether valid authentication state was loaded.
+When the user signs out, we clear the authentication state and send them back to authentication screens.
+    note
+We say "authentication screens" because usually there is more than one.You may have a main screen with a username and password field, another for "forgot password", and another set for sign up.
+
+What we need
+We want the following behavior from our authentication flow:
+
+When the user is signed in, we want to show the main app screens and not the authentication - related screens.
+When the user is signed out, we want to show the authentication screens and not the main app screens.
+After the user goes through the authentication flow and signs in, we want to unmount all of the screens related to authentication, and when we press the hardware back button, we expect to not be able to go back to the authentication flow.
+How it will work
+We can configure different screens to be available based on some condition.For example, if the user is signed in, we want Home to be available.If the user is not signed in, we want SignIn to be available.
+
+    Static
+Dynamic
+const RootStack = createNativeStackNavigator({
+    screens: {
+        Home: {
+            if: useIsSignedIn,
+            screen: HomeScreen,
+        },
+        SignIn: {
+            if: useIsSignedOut,
+            screen: SignInScreen,
+        },
+    },
+});
+
+Try on Snack
+Here, for each screen, we have defined a condition using the if property which takes a hook.The hook returns a boolean value indicating whether the user is signed in or not.If the hook returns true, the screen will be available, otherwise it won't.
+
+This means:
+
+When useIsSignedIn returns true, React Navigation will only use the Home screen, since it's the only screen matching the condition.
+Similarly, when useIsSignedOut returns true, React Navigation will use the SignIn screen.
+This makes it impossible to navigate to the Home when the user is not signed in, and to SignIn when the user is signed in.
+
+When the values returned by useIsSignedin and useIsSignedOut change, the screens matching the condition will change:
+
+Let's say, initially useIsSignedOut returns true. This means that SignIn screens is shown.
+After the user signs in, the return value of useIsSignedIn will change to true and useIsSignedOut will change to false, which means:
+React Navigation will see that the SignIn screen is no longer matches the condition, so it will remove the screen.
+Then it'll show the Home screen automatically because that's the first screen available when useIsSignedIn returns true.
+The order of the screens matters when there are multiple screens matching the condition.For example, if there are two screens matching useIsSignedIn, the first screen will be shown when the condition is true.
+
+Define the hooks
+To implement the useIsSignedIn and useIsSignedOut hooks, we can start by creating a context to store the authentication state.Let's call it SignInContext:
+
+import * as React from 'react';
+
+const SignInContext = React.createContext();
+
+Then we can implement the useIsSignedIn and useIsSignedOut hooks as follows:
+
+function useIsSignedIn() {
+    const isSignedIn = React.useContext(SignInContext);
+    return isSignedIn;
+}
+
+function useIsSignedOut() {
+    return !useIsSignedIn();
+}
+
+We'll discuss how to provide the context value later.
+
+Add more screens
+For our case, let's say we have 3 screens:
+
+SplashScreen - This will show a splash or loading screen when we're restoring the token.
+SignIn - This is the screen we show if the user isn't signed in already (we couldn't find a token).
+Home - This is the screen we show if the user is already signed in.
+So our navigator will look like:
+
+Static
+Dynamic
+const RootStack = createNativeStackNavigator({
+    screens: {
+        Home: {
+            if: useIsSignedIn,
+            screen: HomeScreen,
+        },
+        SignIn: {
+            if: useIsSignedOut,
+            screen: SignInScreen,
+            options: {
+                title: 'Sign in',
+            },
+        },
+    },
+});
+
+const Navigation = createStaticNavigation(RootStack);
+
+Notice how we have only defined the Home and SignIn screens here, and not the SplashScreen.The SplashScreen should be rendered before we render any navigators so that we don't render incorrect screens before we know whether the user is signed in or not.
+
+When we use this in our component, it'd look something like this:
+
+Static
+Dynamic
+if (isLoading) {
+    // We haven't finished checking for the token yet
+    return <SplashScreen />;
+}
+
+const isSignedIn = userToken != null;
+
+return (
+    <SignInContext.Provider value= { isSignedIn } >
+    <Navigation />
+    </SignInContext.Provider>
+);
+
+In the above snippet, isLoading means that we're still checking if we have a token. This can usually be done by checking if we have a token in SecureStore and validating the token.
+
+Next, we're exposing the sign in status via the SignInContext so that it's available to the useIsSignedIn and useIsSignedOut hooks.
+
+In the above example, we have one screen for each case. But you could also define multiple screens.For example, you probably want to define password reset, signup, etc screens as well when the user isn't signed in. Similarly for the screens accessible after sign in, you probably have more than one screen.
+
+Static
+Dynamic
+We can use groups to define multiple screens:
+
+const RootStack = createNativeStackNavigator({
+    screens: {
+        // Common screens
+    },
+    groups: {
+        SignedIn: {
+            if: useIsSignedIn,
+            screens: {
+                Home: HomeScreen,
+                Profile: ProfileScreen,
+            },
+        },
+        SignedOut: {
+            if: useIsSignedOut,
+            screens: {
+                SignIn: SignInScreen,
+                SignUp: SignUpScreen,
+                ResetPassword: ResetPasswordScreen,
+            },
+        },
+    },
+});
+
+Implement the logic for restoring the token
+note
+The following is just an example of how you might implement the logic for authentication in your app.You don't need to follow it as is.
+
+From the previous snippet, we can see that we need 3 state variables:
+
+isLoading - We set this to true when we're trying to check if we already have a token saved in SecureStore.
+isSignout - We set this to true when user is signing out, otherwise set it to false.This can be used to customize the animation when signing out.
+    userToken - The token for the user.If it's non-null, we assume the user is logged in, otherwise not.
+So we need to:
+
+Add some logic for restoring token, signing in and signing out
+Expose methods for signing in and signing out to other components
+We'll use React.useReducer and React.useContext in this guide. But if you're using a state management library such as Redux or Mobx, you can use them for this functionality instead.In fact, in bigger apps, a global state management library is more suitable for storing authentication tokens.You can adapt the same approach to your state management library.
+
+First we'll need to create a context for auth where we can expose the necessary methods:
+
+import * as React from 'react';
+
+const AuthContext = React.createContext();
+
+In our component, we will:
+
+Store the token and loading state in useReducer
+Persist it to SecureStore and read it from there on app launch
+Expose the methods for sign in and sign out to child components using AuthContext
+So our component will look like this:
+
+Static
+Dynamic
+import * as React from 'react';
+import * as SecureStore from 'expo-secure-store';
+
+export default function App() {
+    const [state, dispatch] = React.useReducer(
+        (prevState, action) => {
+            switch (action.type) {
+                case 'RESTORE_TOKEN':
+                    return {
+                        ...prevState,
+                        userToken: action.token,
+                        isLoading: false,
+                    };
+                case 'SIGN_IN':
+                    return {
+                        ...prevState,
+                        isSignout: false,
+                        userToken: action.token,
+                    };
+                case 'SIGN_OUT':
+                    return {
+                        ...prevState,
+                        isSignout: true,
+                        userToken: null,
+                    };
+            }
+        },
+        {
+            isLoading: true,
+            isSignout: false,
+            userToken: null,
+        }
+    );
+
+    React.useEffect(() => {
+        // Fetch the token from storage then navigate to our appropriate place
+        const bootstrapAsync = async () => {
+            let userToken;
+
+            try {
+                // Restore token stored in `SecureStore` or any other encrypted storage
+                userToken = await SecureStore.getItemAsync('userToken');
+            } catch (e) {
+                // Restoring token failed
+            }
+
+            // After restoring token, we may need to validate it in production apps
+
+            // This will switch to the App screen or Auth screen and this loading
+            // screen will be unmounted and thrown away.
+            dispatch({ type: 'RESTORE_TOKEN', token: userToken });
+        };
+
+        bootstrapAsync();
+    }, []);
+
+    const authContext = React.useMemo(
+        () => ({
+            signIn: async (data) => {
+                // In a production app, we need to send some data (usually username, password) to server and get a token
+                // We will also need to handle errors if sign in failed
+                // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
+                // In the example, we'll use a dummy token
+
+                dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+            },
+            signOut: () => dispatch({ type: 'SIGN_OUT' }),
+            signUp: async (data) => {
+                // In a production app, we need to send user data to server and get a token
+                // We will also need to handle errors if sign up failed
+                // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
+                // In the example, we'll use a dummy token
+
+                dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+            },
+        }),
+        []
+    );
+
+    if (state.isLoading) {
+        // We haven't finished checking for the token yet
+        return <SplashScreen />;
+    }
+
+    const isSignedIn = state.userToken != null;
+
+    return (
+        <AuthContext.Provider value= { authContext } >
+        <SignInContext.Provider value={ isSignedIn }>
+            <Navigation />
+            </SignInContext.Provider>
+            </AuthContext.Provider>
+  );
+}
+
+const RootStack = createNativeStackNavigator({
+    screens: {
+        Home: {
+            if: useIsSignedIn,
+            screen: HomeScreen,
+        },
+        SignIn: {
+            if: useIsSignedOut,
+            screen: SignInScreen,
+            options: {
+                title: 'Sign in',
+            },
+        },
+    },
+});
+
+const Navigation = createStaticNavigation(RootStack);
+
+
+Try on Snack
+Fill in other components
+We won't talk about how to implement the text inputs and buttons for the authentication screen, that is outside of the scope of navigation. We'll just fill in some placeholder content.
+
+function SignInScreen() {
+    const [username, setUsername] = React.useState('');
+    const [password, setPassword] = React.useState('');
+
+    const { signIn } = React.useContext(AuthContext);
+
+    return (
+        <View>
+        <TextInput
+        placeholder= "Username"
+    value = { username }
+    onChangeText = { setUsername }
+        />
+        <TextInput
+        placeholder="Password"
+    value = { password }
+    onChangeText = { setPassword }
+    secureTextEntry
+        />
+        <Button onPress={ () => signIn({ username, password }) }> Sign in </Button>
+            </View>
+  );
+}
+
+You can similarly fill in the other screens according to your requirements.
+
+Removing shared screens when auth state changes
+Consider the following example:
+
+Static
+Dynamic
+const RootStack = createNativeStackNavigator({
+    groups: {
+        LoggedIn: {
+            if: useIsSignedIn,
+            screens: {
+                Home: HomeScreen,
+                Profile: ProfileScreen,
+            },
+        },
+        LoggedOut: {
+            if: useIsSignedOut,
+            screens: {
+                SignIn: SignInScreen,
+                SignUp: SignUpScreen,
+            },
+        },
+    },
+    screens: {
+        Help: HelpScreen,
+    },
+});
+
+Here we have specific screens such as SignIn, Home etc.which are only shown depending on the sign in state.But we also have the Help screen which can be shown regardless of the login status.This also means that if the sign in state changes when the user is in the Help screen, they'll stay on the Help screen.
+
+This can be a problem, we probably want the user to be taken to the SignIn screen or Home screen instead of keeping them on the Help screen.
+
+    Static
+Dynamic
+To make this work, we can move the Help screen to both of the groups instead of keeping it outside.This will ensure that the navigationKey(the name of the group) for the screen changes when the sign in state changes.
+
+So our updated code will look like the following:
+
+const RootStack = createNativeStackNavigator({
+    groups: {
+        LoggedIn: {
+            if: useIsSignedIn,
+            screens: {
+                Home: HomeScreen,
+                Profile: ProfileScreen,
+                Help: HelpScreen,
+            },
+        },
+        LoggedOut: {
+            if: useIsSignedOut,
+            screens: {
+                SignIn: SignInScreen,
+                SignUp: SignUpScreen,
+                Help: HelpScreen,
+            },
+        },
+    },
+});
+
+The examples above show stack navigator, but you can use the same approach with any navigator.
+
+By specifying a condition for our screens, we can implement auth flow in a simple way that doesn't require additional logic to make sure that the correct screen is shown.
+
+Don't manually navigate when conditionally rendering screens
+It's important to note that when using such a setup, you don't manually navigate to the Home screen by calling navigation.navigate('Home') or any other method.React Navigation will automatically navigate to the correct screen when isSignedIn changes - Home screen when isSignedIn becomes true, and to SignIn screen when isSignedIn becomes false.You'll get an error if you attempt to navigate manually.
+
+
+
+
+
+
+
+
+Bottom Tabs Navigator
+A simple tab bar on the bottom of the screen that lets you switch between different routes.Routes are lazily initialized-- their screen components are not mounted until they are first focused.
+
+    Installation
+To use this navigator, ensure that you have @react-navigation / native and its dependencies(follow this guide), then install @react-navigation / bottom - tabs:
+
+npm
+Yarn
+pnpm
+npm install @react-navigation / bottom - tabs
+
+Usage
+To use this navigator, import it from @react - navigation / bottom - tabs:
+
+Static
+Dynamic
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+const MyTabs = createBottomTabNavigator({
+    screens: {
+        Home: HomeScreen,
+        Profile: ProfileScreen,
+    },
+});
