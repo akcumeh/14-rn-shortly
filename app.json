@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "13-rn-dailyjournal",
-    "slug": "13-rn-dailyjournal",
+    "name": "14-rn-shortly",
+    "slug": "14-rn-shortly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "13rndailyjournal",
+    "scheme": "14rnshortly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -24,7 +24,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -33,7 +32,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
