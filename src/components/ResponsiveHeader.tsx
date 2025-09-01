@@ -1,8 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 
 interface ResponsiveHeaderProps {
@@ -31,6 +29,7 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }
         mobileHeader: {
             paddingHorizontal: width * 0.053,
             paddingBottom: height * 0.018,
+            paddingTop: height * 0.04,
             minHeight: height * 0.1,
         },
     };
@@ -65,7 +64,7 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }
     }
 
     return (
-        <View style={[styles.mobileHeader, dynamicStyles.mobileHeader, { paddingTop: insets.top }]}>
+        <View style={[styles.mobileHeader, dynamicStyles.mobileHeader, { paddingTop: insets.top + (height * 0.02) }]}>
             <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                 <Text style={styles.mobileTitle}>Shortly</Text>
             </TouchableOpacity>
@@ -73,11 +72,11 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }
                 onPress={() => navigation.openDrawer()}
                 style={styles.hamburgerButton}
             >
-                <Ionicons
-                    name="menu"
-                    size={24}
-                    color={Colors.neutral.gray500}
-                />
+                <View style={styles.hamburgerIcon}>
+                    <View style={styles.dash} />
+                    <View style={styles.dash} />
+                    <View style={styles.dash} />
+                </View>
             </TouchableOpacity>
         </View>
     );
@@ -139,12 +138,23 @@ const styles = StyleSheet.create({
     },
     mobileHeader: {
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: 'white',
     },
     hamburgerButton: {
         padding: 5,
+    },
+    hamburgerIcon: {
+        width: 24,
+        height: 18,
+        justifyContent: 'space-between',
+    },
+    dash: {
+        width: 24,
+        height: 3,
+        backgroundColor: Colors.neutral.gray500,
+        borderRadius: 1,
     },
     mobileTitle: {
         fontSize: 36,

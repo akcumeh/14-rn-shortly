@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Animated } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Animated, ScrollView } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import IllustrationSvg from '../../assets/images/illustration-working.svg';
 
@@ -7,9 +7,9 @@ export default function HomeScreen() {
     const { width, height } = useWindowDimensions();
     const isDesktop = width >= 640;
     
-    const imageFadeAnim = useRef(new Animated.Value(0)).current;
-    const imageScaleAnim = useRef(new Animated.Value(0.95)).current;
-    const imageTranslateY = useRef(new Animated.Value(30)).current;
+    const imageFadeAnim = useRef(new Animated.Value(1)).current;
+    const imageScaleAnim = useRef(new Animated.Value(1)).current;
+    const imageTranslateY = useRef(new Animated.Value(0)).current;
     
     const titleFadeAnim = useRef(new Animated.Value(0)).current;
     const titleScaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -53,7 +53,7 @@ export default function HomeScreen() {
                 ]).start();
             };
 
-            setTimeout(() => animateElement(imageFadeAnim, imageScaleAnim, imageTranslateY, 0), 0);
+            // Image is already visible, no animation needed
             setTimeout(() => animateElement(titleFadeAnim, titleScaleAnim, titleTranslateY, 0), 100);
             setTimeout(() => animateElement(subtitleFadeAnim, subtitleScaleAnim, subtitleTranslateY, 0), 200);
             setTimeout(() => animateElement(buttonFadeAnim, buttonScaleAnim, buttonTranslateY, 0), 300);
@@ -70,11 +70,12 @@ export default function HomeScreen() {
             paddingHorizontal: width * 0.053,
             paddingVertical: height * 0.02,
             flexDirection: isDesktop ? 'row' as const : 'column' as const,
-            alignItems: 'center' as const,
+            // alignItems: 'center' as const,
             justifyContent: isDesktop ? 'space-between' as const : 'flex-start' as const,
         },
         illustration: {
             width: isDesktop ? width * 0.5 : width,
+            alignSelf: isDesktop ? 'auto' : 'flex-end',
         },
         contentPanel: {
             flex: isDesktop ? 1 : 0,
@@ -83,15 +84,15 @@ export default function HomeScreen() {
             paddingTop: isDesktop ? 0 : height * 0.05,
         },
         mainTitle: {
-            fontSize: isDesktop ? 56 : 32,
+            fontSize: isDesktop ? 56 : 42.5,
             textAlign: isDesktop ? 'left' as const : 'center' as const,
-            marginBottom: height * 0.03,
-            lineHeight: isDesktop ? 64 : 38,
+            marginBottom: height * 0.025,
+            lineHeight: isDesktop ? 64 : 54,
         },
         subtitle: {
             fontSize: 18,
             textAlign: isDesktop ? 'left' as const : 'center' as const,
-            marginBottom: height * 0.05,
+            marginBottom: height * 0.04,
             lineHeight: 26,
         },
         getStartedButton: {
@@ -100,7 +101,7 @@ export default function HomeScreen() {
     };
 
     return (
-        <View style={[styles.container, dynamicStyles.container]}>
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.container, dynamicStyles.container]} showsVerticalScrollIndicator={false}>
             {!isDesktop && (
                 <Animated.View
                     style={[
@@ -115,9 +116,6 @@ export default function HomeScreen() {
                 >
                     <IllustrationSvg
                         width={dynamicStyles.illustration.width}
-                        style={{
-                            maxHeight: height * 0.35,
-                        }}
                     />
                 </Animated.View>
             )}
@@ -184,21 +182,30 @@ export default function HomeScreen() {
                         }
                     ]}
                 >
-                    <IllustrationSvg
-                        width={dynamicStyles.illustration.width}
-                    />
+                    <View style={{ 
+                        height: height * 0.25, 
+                        aspectRatio: 518 / 582,
+                        alignSelf: 'flex-end' 
+                    }}>
+                        <IllustrationSvg
+                            width="100%"
+                            height="100%"
+                            viewBox="0 0 518 582"
+                        />
+                    </View>
                 </Animated.View>
             )}
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    scrollContainer: {
+        flex: 1,
         backgroundColor: 'white',
     },
-    illustration: {
-        resizeMode: 'contain' as const,
+    container: {
+        backgroundColor: 'white',
     },
     contentPanel: {
     },
