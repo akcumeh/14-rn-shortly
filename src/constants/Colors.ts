@@ -2,7 +2,7 @@ export const Colors = {
     primary: {
         blue400: 'hsl(180, 66%, 49%)',
         purple950: 'hsl(257, 27%, 26%)',
-        purple950alt: 'hsl(255, 25%, 34%)',
+        purple950alt: 'hsla(255, 23%, 39%, 1.00)',
     },
     secondary: {
         red400: 'hsl(0, 87%, 67%)',

@@ -156,7 +156,7 @@ export default function FeaturesScreen() {
                             ]}
                         >
                             <View style={styles.iconContainer}>
-                                <IconComponent width={48} height={48} />
+                                <IconComponent width={40} height={40} />
                             </View>
                             
                             <Text style={styles.featureTitle}>{feature.title}</Text>
@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 32,
+        overflow: 'hidden',
     },
     featureTitle: {
         fontFamily: 'Poppins_700Bold',

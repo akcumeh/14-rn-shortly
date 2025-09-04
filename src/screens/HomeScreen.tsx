@@ -1,10 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Animated, ScrollView } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
+import { useNavigation } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { RootDrawerParamList } from '../types/navigation';
 import IllustrationSvg from '../../assets/images/illustration-working.svg';
+
+type HomeScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Home'>;
 
 export default function HomeScreen() {
     const { width, height } = useWindowDimensions();
+    const navigation = useNavigation<HomeScreenNavigationProp>();
     const isDesktop = width >= 640;
     
     const imageFadeAnim = useRef(new Animated.Value(1)).current;
@@ -53,7 +59,6 @@ export default function HomeScreen() {
                 ]).start();
             };
 
-            // Image is already visible, no animation needed
             setTimeout(() => animateElement(titleFadeAnim, titleScaleAnim, titleTranslateY, 0), 100);
             setTimeout(() => animateElement(subtitleFadeAnim, subtitleScaleAnim, subtitleTranslateY, 0), 200);
             setTimeout(() => animateElement(buttonFadeAnim, buttonScaleAnim, buttonTranslateY, 0), 300);
@@ -70,7 +75,6 @@ export default function HomeScreen() {
             paddingHorizontal: width * 0.053,
             paddingVertical: height * 0.02,
             flexDirection: isDesktop ? 'row' as const : 'column' as const,
-            // alignItems: 'center' as const,
             justifyContent: isDesktop ? 'space-between' as const : 'flex-start' as const,
         },
         illustration: {
@@ -97,6 +101,8 @@ export default function HomeScreen() {
         },
         getStartedButton: {
             width: isDesktop ? 200 : width * 0.6,
+            marginBottom: '2.5rem',
+
         },
     };
 
@@ -164,7 +170,10 @@ export default function HomeScreen() {
                         }
                     ]}
                 >
-                    <TouchableOpacity style={[styles.getStartedButton, dynamicStyles.getStartedButton]}>
+                    <TouchableOpacity 
+                        style={[styles.getStartedButton, dynamicStyles.getStartedButton]}
+                        onPress={() => navigation.navigate('Saved URLs')}
+                    >
                         <Text style={styles.buttonText}>Get Started</Text>
                     </TouchableOpacity>
                 </Animated.View>
@@ -206,6 +215,7 @@ const styles = StyleSheet.create({
     },
     container: {
         backgroundColor: 'white',
+        paddingBottom: 40,
     },
     contentPanel: {
     },

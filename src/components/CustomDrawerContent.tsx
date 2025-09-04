@@ -69,7 +69,6 @@ const CustomDrawerContent = (props: any) => {
 
 const styles = StyleSheet.create({
     drawerContent: {
-        // Dynamic styles will override these
     },
     navigationSection: {
         flex: 1,
