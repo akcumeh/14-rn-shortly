@@ -1,11 +1,15 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, Animated, Linking } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import Clipboard from '@react-native-clipboard/clipboard';
+import { useNavigation } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { RootDrawerParamList } from '../types/navigation';
+import * as Clipboard from 'expo-clipboard';
 import isUrl from 'is-url';
 import { Colors } from '../constants/Colors';
 import BgShortenMobile from '../../assets/images/bg-shorten-mobile.svg';
 import { shortenUrl as shortenURL } from '../services/urlConverter';
+import { urlStorageService } from '../services/urlStorage';
 
 interface ShortenedURL {
     id: string;
@@ -13,19 +17,31 @@ interface ShortenedURL {
     shortened: string;
 }
 
+type URLScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Saved URLs'>;
+
 export default function URLScreen() {
+    const navigation = useNavigation<URLScreenNavigationProp>();
     const [url, setUrl] = useState('');
     const [error, setError] = useState('');
     const [shortenedUrls, setShortenedUrls] = useState<ShortenedURL[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const { width, height } = useWindowDimensions();
+    const { width } = useWindowDimensions();
     const buttonAnimations = useRef<{[key: string]: Animated.Value}>({}).current;
     
     const [fontsLoaded] = useFonts({
         Poppins_500Medium,
         Poppins_700Bold,
     });
+
+    useEffect(() => {
+        loadStoredUrls();
+    }, []);
+
+    const loadStoredUrls = async () => {
+        const stored = await urlStorageService.getStoredUrls();
+        setShortenedUrls(stored);
+    };
 
     if (!fontsLoaded) {
         return null;
@@ -68,13 +84,11 @@ export default function URLScreen() {
             const shortenedUrl = await shortenURL(validation.finalUrl);
             console.log('Successfully shortened URL:', shortenedUrl);
             
-            const newShortenedUrl: ShortenedURL = {
-                id: Date.now().toString(),
-                original: validation.finalUrl,
-                shortened: shortenedUrl
-            };
-
-            setShortenedUrls(prev => [newShortenedUrl, ...prev]);
+            // Store in local storage with expiry
+            await urlStorageService.addUrl(validation.finalUrl, shortenedUrl);
+            
+            // Reload URLs from storage to update the UI
+            await loadStoredUrls();
             setUrl('');
         } catch (err) {
             console.error('URL shortening error:', err);
@@ -91,10 +105,10 @@ export default function URLScreen() {
         return buttonAnimations[id];
     };
 
-    const copyToClipboard = (shortened: string, id: string) => {
+    const copyToClipboard = async (shortened: string, id: string) => {
         if (copiedId === id) return;
         
-        Clipboard.setString(shortened);
+        await Clipboard.setStringAsync(shortened);
         setCopiedId(id);
         
         const animation = getButtonAnimation(id);
@@ -186,11 +200,11 @@ export default function URLScreen() {
 
             <View style={styles.ctaContainer}>
                 <Text style={styles.ctaText}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
                         <Text style={styles.ctaLink}>Login</Text>
                     </TouchableOpacity>
                     <Text style={styles.ctaText}> or </Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
                         <Text style={styles.ctaLink}>signup</Text>
                     </TouchableOpacity>
                     <Text style={styles.ctaText}> to store and access more of your Shortly history.</Text>

@@ -172,7 +172,7 @@ export default function HomeScreen() {
                 >
                     <TouchableOpacity 
                         style={[styles.getStartedButton, dynamicStyles.getStartedButton]}
-                        onPress={() => navigation.navigate('Saved URLs')}
+                        onPress={() => navigation.navigate('Auth')}
                     >
                         <Text style={styles.buttonText}>Get Started</Text>
                     </TouchableOpacity>
