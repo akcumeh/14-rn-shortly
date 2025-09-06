@@ -26,7 +26,6 @@ const features = [
 
 export default function FeaturesScreen() {
     const { width } = useWindowDimensions();
-    const isDesktop = width >= 640;
 
     const headerFadeAnim = useRef(new Animated.Value(0.7)).current;
     const headerScaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -97,7 +96,7 @@ export default function FeaturesScreen() {
                 setTimeout(() => animateFeature(anim.scale, anim.translateY, 0), 300 + (index * 150));
             });
         }
-    }, [fontsLoaded]);
+    }, [fontsLoaded, headerFadeAnim, headerScaleAnim, headerTranslateY, subtitleFadeAnim, subtitleScaleAnim, subtitleTranslateY, featureAnims]);
 
     if (!fontsLoaded) {
         return null;
