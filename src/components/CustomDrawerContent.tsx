@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'r
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { Colors } from '../constants/Colors';
+import { authService } from '../lib/auth';
 
 const CustomDrawerContent = (props: any) => {
     const { height, width } = useWindowDimensions();
@@ -15,6 +16,8 @@ const CustomDrawerContent = (props: any) => {
     }
 
     const { navigation } = props;
+    const user = authService.getUser();
+    const isLoggedIn = authService.isAuthenticated();
 
     const dynamicStyles = {
         drawerContent: {
@@ -48,18 +51,24 @@ const CustomDrawerContent = (props: any) => {
                     style={styles.drawerItem}
                     onPress={() => navigation.navigate('Saved URLs')}
                 >
-                    <Text style={styles.drawerItemText}>Resources</Text>
+                    <Text style={styles.drawerItemText}>{isLoggedIn ? 'Saved URLs' : 'Resources'}</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.authSection}>
-                <TouchableOpacity style={styles.drawerItem}>
+                <TouchableOpacity 
+                    style={styles.drawerItem}
+                    onPress={() => navigation.navigate('Auth')}
+                >
                     <Text style={styles.drawerItemText}>Login</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.signupButton}>
+                <TouchableOpacity 
+                    style={styles.signupButton}
+                    onPress={() => navigation.navigate('Auth')}
+                >
                     <Text style={styles.signupButtonText}>Sign Up</Text>
                 </TouchableOpacity>
             </View>

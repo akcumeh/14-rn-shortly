@@ -84,10 +84,7 @@ export default function URLScreen() {
             const shortenedUrl = await shortenURL(validation.finalUrl);
             console.log('Successfully shortened URL:', shortenedUrl);
             
-            // Store in local storage with expiry
             await urlStorageService.addUrl(validation.finalUrl, shortenedUrl);
-            
-            // Reload URLs from storage to update the UI
             await loadStoredUrls();
             setUrl('');
         } catch (err) {
@@ -203,11 +200,11 @@ export default function URLScreen() {
                     <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
                         <Text style={styles.ctaLink}>Login</Text>
                     </TouchableOpacity>
-                    <Text style={styles.ctaText}> or </Text>
+                    {' or '}
                     <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
                         <Text style={styles.ctaLink}>signup</Text>
                     </TouchableOpacity>
-                    <Text style={styles.ctaText}> to store and access more of your Shortly history.</Text>
+                    {' to store and access more of your Shortly history.'}
                 </Text>
             </View>
         </ScrollView>
@@ -351,5 +348,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'Poppins_500Medium',
         color: Colors.primary.blue400,
+        textDecorationLine: 'none',
     },
 });

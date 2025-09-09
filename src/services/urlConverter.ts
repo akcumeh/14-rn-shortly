@@ -8,7 +8,6 @@ interface ShortenResponse {
 export async function shortenUrl(longUrl: string): Promise<string> {
     const trimmedUrl = longUrl.trim();
     
-    // Try your backend first
     try {
         const response = await fetch(`${config.apiUrl}/api/shorten`, {
             method: 'POST',
@@ -28,7 +27,6 @@ export async function shortenUrl(longUrl: string): Promise<string> {
     } catch (backendError) {
         console.log('Backend failed, trying CleanURI:', backendError);
         
-        // Fallback to CleanURI (works on mobile devices)
         try {
             const encodedUrl = encodeURIComponent(trimmedUrl);
             console.log('Trying CleanURI with encoded URL:', encodedUrl);

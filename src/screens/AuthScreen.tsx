@@ -132,6 +132,16 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
 
     return (
         <View style={[styles.container, dynamicStyles.container]}>
+            <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => navigation.goBack()}
+            >
+                <View style={styles.closeIcon}>
+                    <View style={[styles.closeDash, styles.closeDash1]} />
+                    <View style={[styles.closeDash, styles.closeDash2]} />
+                </View>
+            </TouchableOpacity>
+            
             <Text style={styles.title}>
                 {step === 'signup' ? 'Create Account' :
                     step === 'login' ? 'Welcome Back' :
@@ -328,5 +338,30 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: 'Poppins_500Medium',
         marginBottom: 20,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 40,
+        left: 20,
+        zIndex: 1,
+        padding: 10,
+    },
+    closeIcon: {
+        width: 20,
+        height: 20,
+        position: 'relative',
+    },
+    closeDash: {
+        position: 'absolute',
+        width: 20,
+        height: 2,
+        backgroundColor: Colors.neutral.gray600,
+        top: 9,
+    },
+    closeDash1: {
+        transform: [{ rotate: '45deg' }],
+    },
+    closeDash2: {
+        transform: [{ rotate: '-45deg' }],
     },
 });
