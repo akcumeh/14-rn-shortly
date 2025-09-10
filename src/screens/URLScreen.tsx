@@ -197,11 +197,11 @@ export default function URLScreen() {
 
             <View style={styles.ctaContainer}>
                 <Text style={styles.ctaText}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'login' })}>
                         <Text style={styles.ctaLink}>Login</Text>
                     </TouchableOpacity>
                     {' or '}
-                    <TouchableOpacity onPress={() => navigation.navigate('Auth')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'signup' })}>
                         <Text style={styles.ctaLink}>signup</Text>
                     </TouchableOpacity>
                     {' to store and access more of your Shortly history.'}

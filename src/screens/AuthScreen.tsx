@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, useWindowDimensions, Alert } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import type { RootDrawerParamList } from '../types/navigation';
 import { authService } from '../lib/auth';
@@ -15,11 +15,14 @@ type AuthScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Auth'
 
 export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
     const navigation = useNavigation<AuthScreenNavigationProp>();
+    const route = useRoute();
+    const initialStep = (route.params as any)?.mode || 'login';
+    
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
-    const [step, setStep] = useState<'signup' | 'login' | 'otp'>('login');
+    const [step, setStep] = useState<'signup' | 'login' | 'otp'>(initialStep);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentPhone, setCurrentPhone] = useState('');

@@ -52,10 +52,19 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }
                     </TouchableOpacity>
                 </View>
                 <View style={styles.authButtons}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => {
+                        console.log('Login button pressed');
+                        navigation.navigate('Auth', { mode: 'login' });
+                    }}>
                         <Text style={styles.loginButton}>Login</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.signupButton}>
+                    <TouchableOpacity 
+                        style={styles.signupButton}
+                        onPress={() => {
+                            console.log('Signup button pressed');
+                            navigation.navigate('Auth', { mode: 'signup' });
+                        }}
+                    >
                         <Text style={styles.signupButtonText}>Sign Up</Text>
                     </TouchableOpacity>
                 </View>

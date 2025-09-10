@@ -60,14 +60,14 @@ const CustomDrawerContent = (props: any) => {
             <View style={styles.authSection}>
                 <TouchableOpacity 
                     style={styles.drawerItem}
-                    onPress={() => navigation.navigate('Auth')}
+                    onPress={() => navigation.navigate('Auth', { mode: 'login' })}
                 >
                     <Text style={styles.drawerItemText}>Login</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
                     style={styles.signupButton}
-                    onPress={() => navigation.navigate('Auth')}
+                    onPress={() => navigation.navigate('Auth', { mode: 'signup' })}
                 >
                     <Text style={styles.signupButtonText}>Sign Up</Text>
                 </TouchableOpacity>
