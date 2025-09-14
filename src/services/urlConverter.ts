@@ -7,11 +7,13 @@ interface ShortenResponse {
 
 export async function shortenUrl(longUrl: string): Promise<string> {
     const trimmedUrl = longUrl.trim();
-    
+    // return `${config.apiUrl}/proxy/shorten`;
     try {
-        const response = await fetch(`${config.apiUrl}/api/shorten`, {
+        console.log('Trying backend with URL:', trimmedUrl);
+        const response = await fetch(`${config.apiUrl}/proxy/shorten`, {
             method: 'POST',
             headers: {
+                'ngrok-skip-browser-warning': 'true',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ url: trimmedUrl }),

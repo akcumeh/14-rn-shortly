@@ -89,7 +89,7 @@ export default function URLScreen() {
             setUrl('');
         } catch (err) {
             console.error('URL shortening error:', err);
-            setError(`Failed to shorten URL: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            setError(`Failed to shorten URL: ${err+" "+validation.finalUrl}`);
         } finally {
             setIsLoading(false);
         }
@@ -198,7 +198,7 @@ export default function URLScreen() {
             <View style={styles.ctaContainer}>
                 <Text style={styles.ctaText}>
                     <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'login' })}>
-                        <Text style={styles.ctaLink}>Login</Text>
+                        <Text style={style.ctaLink}>Login</Text>
                     </TouchableOpacity>
                     {' or '}
                     <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'signup' })}>
