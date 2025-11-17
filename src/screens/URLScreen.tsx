@@ -8,6 +8,7 @@ import * as Clipboard from 'expo-clipboard';
 import isUrl from 'is-url';
 import { Colors } from '../constants/Colors';
 import BgShortenMobile from '../../assets/images/bg-shorten-mobile.svg';
+import BgShortenDesktop from '../../assets/images/bg-shorten-desktop.svg';
 import { shortenUrl as shortenURL } from '../services/urlConverter';
 import { urlStorageService } from '../services/urlStorage';
 
@@ -26,7 +27,13 @@ export default function URLScreen() {
     const [shortenedUrls, setShortenedUrls] = useState<ShortenedURL[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [shortenBtnHover, setShortenBtnHover] = useState(false);
+    const [hoveredUrlId, setHoveredUrlId] = useState<string | null>(null);
+    const [hoveredCopyId, setHoveredCopyId] = useState<string | null>(null);
+    const [loginHover, setLoginHover] = useState(false);
+    const [signupHover, setSignupHover] = useState(false);
     const { width } = useWindowDimensions();
+    const isDesktop = width >= 800;
     const buttonAnimations = useRef<{[key: string]: Animated.Value}>({}).current;
     
     const [fontsLoaded] = useFonts({
@@ -53,7 +60,7 @@ export default function URLScreen() {
         }
         
         if (!urlString.match(/^(https?:\/\/|mailto:|ftp:\/\/|file:\/\/)/)) {
-            const urlWithPrefix = `http://${urlString}`;
+            const urlWithPrefix = `https://${urlString}`;
             if (isUrl(urlWithPrefix)) {
                 return { isValid: true, finalUrl: urlWithPrefix };
             }
@@ -89,7 +96,8 @@ export default function URLScreen() {
             setUrl('');
         } catch (err) {
             console.error('URL shortening error:', err);
-            setError(`Failed to shorten URL: ${err+" "+validation.finalUrl}`);
+            const error = err as any;
+            setError(error.message || 'Failed to shorten URL');
         } finally {
             setIsLoading(false);
         }
@@ -128,84 +136,124 @@ export default function URLScreen() {
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <View style={styles.shortenContainer}>
-                <View style={styles.backgroundSolid} />
-                <BgShortenMobile width={width - 40} height={200} style={styles.backgroundImage} />
-                
-                <View style={styles.formContent}>
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={[styles.input, error ? styles.inputError : null]}
-                            placeholder="Shorten a link here..."
-                            placeholderTextColor={error ? Colors.secondary.red400 : Colors.neutral.gray500}
-                            value={url}
-                            onChangeText={(text) => {
-                                setUrl(text);
-                                if (error) setError('');
-                            }}
-                            onSubmitEditing={shortenUrl}
-                            returnKeyType="done"
-                        />
-                        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                    </View>
-                    
-                    <TouchableOpacity 
-                        style={[styles.shortenBtn, isLoading && styles.shortenBtnDisabled]} 
-                        onPress={shortenUrl}
-                        disabled={isLoading}
-                    >
-                        <Text style={styles.shortenbtnText}>
-                            {isLoading ? 'Shortening...' : 'Shorten It!'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <View style={[styles.contentWrapper, isDesktop && styles.desktopContentWrapper]}>
+                <View style={[styles.shortenContainer, isDesktop && styles.desktopShortenContainer]}>
+                    <View style={styles.backgroundSolid} />
+                    {isDesktop ? (
+                        <BgShortenDesktop width={width} height={180} style={styles.backgroundImage} />
+                    ) : (
+                        <BgShortenMobile width={width} height={200} style={styles.backgroundImage} />
+                    )}
 
-            <View style={styles.urlsList}>
-                {shortenedUrls.map((item) => (
-                    <View key={item.id} style={styles.urlCard}>
-                        <Text style={styles.originalUrl} numberOfLines={1}>{item.original}</Text>
-                        <View style={styles.divider} />
-                        <TouchableOpacity onPress={() => Linking.openURL(item.shortened)}>
-                            <Text style={styles.shortenedUrl}>{item.shortened}</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                            onPress={() => copyToClipboard(item.shortened, item.id)}
-                            disabled={copiedId === item.id}
-                        >
-                            <Animated.View
-                                style={{
-                                    backgroundColor: getButtonAnimation(item.id).interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [Colors.primary.blue400, Colors.primary.purple950]
-                                    }),
-                                    borderRadius: 8,
-                                    margin: 16,
-                                    padding: 12,
-                                    alignItems: 'center',
+                    <View style={[styles.formContent, isDesktop && styles.desktopFormContent]}>
+                        <View style={[styles.inputContainer, isDesktop && styles.desktopInputContainer]}>
+                            <TextInput
+                                style={[styles.input, error ? styles.inputError : null, isDesktop && styles.desktopInput]}
+                                placeholder="Shorten a link here..."
+                                placeholderTextColor={error ? Colors.secondary.red400 : Colors.neutral.gray500}
+                                value={url}
+                                onChangeText={(text) => {
+                                    setUrl(text);
+                                    if (error) setError('');
                                 }}
-                            >
-                                <Text style={styles.copybtnText}>
-                                    {copiedId === item.id ? 'Copied!' : 'Copy'}
-                                </Text>
-                            </Animated.View>
+                                onSubmitEditing={shortenUrl}
+                                returnKeyType="done"
+                            />
+                            {error && !isDesktop ? <Text style={styles.errorText}>{error}</Text> : null}
+                        </View>
+
+                        <TouchableOpacity
+                            style={[
+                                styles.shortenBtn,
+                                isDesktop && styles.desktopShortenBtn,
+                                isLoading && styles.shortenBtnDisabled,
+                                shortenBtnHover && !isLoading && styles.shortenBtnHover
+                            ]}
+                            onPress={shortenUrl}
+                            disabled={isLoading}
+                            onPressIn={() => setShortenBtnHover(true)}
+                            onPressOut={() => setShortenBtnHover(false)}
+                        >
+                            <Text style={styles.shortenbtnText}>
+                                {isLoading ? 'Shortening...' : 'Shorten It!'}
+                            </Text>
                         </TouchableOpacity>
                     </View>
-                ))}
-            </View>
+                    {error && isDesktop ? <Text style={[styles.errorText, styles.desktopErrorText]}>{error}</Text> : null}
+                </View>
 
-            <View style={styles.ctaContainer}>
-                <Text style={styles.ctaText}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'login' })}>
-                        <Text style={style.ctaLink}>Login</Text>
-                    </TouchableOpacity>
-                    {' or '}
-                    <TouchableOpacity onPress={() => navigation.navigate('Auth', { mode: 'signup' })}>
-                        <Text style={styles.ctaLink}>signup</Text>
-                    </TouchableOpacity>
-                    {' to store and access more of your Shortly history.'}
-                </Text>
+                <View style={styles.urlsList}>
+                    {shortenedUrls.map((item) => (
+                        <View key={item.id} style={[styles.urlCard, isDesktop && styles.desktopUrlCard]}>
+                            <View style={isDesktop && styles.desktopUrlContent}>
+                                <Text style={styles.originalUrl} numberOfLines={1}>{item.original}</Text>
+                                {!isDesktop && <View style={styles.divider} />}
+                            </View>
+                            <View style={isDesktop && styles.desktopUrlActions}>
+                                <TouchableOpacity
+                                    onPress={() => Linking.openURL(item.shortened)}
+                                    onPressIn={() => setHoveredUrlId(item.id)}
+                                    onPressOut={() => setHoveredUrlId(null)}
+                                >
+                                    <Text style={[
+                                        styles.shortenedUrl,
+                                        hoveredUrlId === item.id && styles.shortenedUrlHover
+                                    ]}>
+                                        {item.shortened}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => copyToClipboard(item.shortened, item.id)}
+                                    disabled={copiedId === item.id}
+                                    onPressIn={() => setHoveredCopyId(item.id)}
+                                    onPressOut={() => setHoveredCopyId(null)}
+                                >
+                                    <Animated.View
+                                        style={[
+                                            {
+                                                backgroundColor: getButtonAnimation(item.id).interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [Colors.primary.blue400, Colors.primary.purple950]
+                                                }),
+                                                borderRadius: 8,
+                                                padding: 12,
+                                                alignItems: 'center',
+                                            },
+                                            isDesktop ? styles.desktopCopyBtn : styles.mobileCopyBtn,
+                                            hoveredCopyId === item.id && copiedId !== item.id && styles.copyBtnHover
+                                        ]}
+                                    >
+                                        <Text style={styles.copybtnText}>
+                                            {copiedId === item.id ? 'Copied!' : 'Copy'}
+                                        </Text>
+                                    </Animated.View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={[styles.ctaContainer, isDesktop && styles.desktopCtaContainer]}>
+                    <Text style={styles.ctaText}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Auth', { mode: 'login' })}
+                            onPressIn={() => setLoginHover(true)}
+                            onPressOut={() => setLoginHover(false)}
+                        >
+                            <Text style={[styles.ctaLink, loginHover && styles.ctaLinkHover]}>Login</Text>
+                        </TouchableOpacity>
+                        {' or '}
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Auth', { mode: 'signup' })}
+                            onPressIn={() => setSignupHover(true)}
+                            onPressOut={() => setSignupHover(false)}
+                        >
+                            <Text style={[styles.ctaLink, signupHover && styles.ctaLinkHover]}>signup</Text>
+                        </TouchableOpacity>
+                        {' to store and access more of your Shortly history.'}
+                    </Text>
+                </View>
             </View>
         </ScrollView>
     );
@@ -219,13 +267,25 @@ const styles = StyleSheet.create({
     content: {
         paddingVertical: 40,
     },
+    contentWrapper: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    desktopContentWrapper: {
+        maxWidth: 1024,
+        paddingHorizontal: 80,
+        alignSelf: 'center',
+    },
     shortenContainer: {
-        marginHorizontal: 20,
+        width: '90%',
         marginBottom: 24,
         position: 'relative',
         borderRadius: 10,
         overflow: 'hidden',
         minHeight: 180,
+    },
+    desktopShortenContainer: {
+        width: '100%',
     },
     backgroundSolid: {
         position: 'absolute',
@@ -285,12 +345,14 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_700Bold',
     },
     urlsList: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 0,
+        width: '90%',
     },
     urlCard: {
         backgroundColor: 'white',
         borderRadius: 8,
         marginBottom: 16,
+        
     },
     originalUrl: {
         fontSize: 16,
@@ -336,12 +398,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 30,
         alignItems: 'center',
+        alignSelf: 'center',
+        flexDirection: 'column'
     },
     ctaText: {
         fontSize: 14,
         fontFamily: 'Poppins_500Medium',
         color: Colors.neutral.gray500,
         textAlign: 'center',
+        alignItems: 'center',
         lineHeight: 20,
     },
     ctaLink: {
@@ -349,5 +414,73 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins_500Medium',
         color: Colors.primary.blue400,
         textDecorationLine: 'none',
+        alignItems: 'center',
+    },
+    desktopCtaContainer: {
+        maxWidth: 640,
+        alignSelf: 'center',
+        width: '100%',
+    },
+    desktopFormContent: {
+        flexDirection: 'row',
+        gap: 16,
+        alignItems: 'flex-start',
+        maxWidth: 640,
+        alignSelf: 'center',
+        width: '100%',
+    },
+    desktopInputContainer: {
+        flex: 1,
+        marginBottom: 0,
+    },
+    desktopInput: {
+        flex: 1,
+    },
+    desktopShortenBtn: {
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        minWidth: 160,
+        flexShrink: 0,
+    },
+    shortenBtnHover: {
+        backgroundColor: 'hsl(180, 66%, 42%)',
+    },
+    desktopErrorText: {
+        paddingHorizontal: 24,
+        paddingBottom: 12,
+    },
+    desktopUrlCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        maxWidth: 640,
+        alignSelf: 'center',
+        width: '100%',
+    },
+    desktopUrlContent: {
+        flex: 1,
+        marginRight: 20,
+    },
+    desktopUrlActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 20,
+    },
+    shortenedUrlHover: {
+        textDecorationLine: 'underline',
+    },
+    mobileCopyBtn: {
+        margin: 16,
+    },
+    desktopCopyBtn: {
+        margin: 0,
+        minWidth: 100,
+    },
+    copyBtnHover: {
+        transform: [{ scale: 1.05 }],
+    },
+    ctaLinkHover: {
+        textDecorationLine: 'underline',
     },
 });

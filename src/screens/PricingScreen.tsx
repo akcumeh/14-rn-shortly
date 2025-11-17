@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
 
 export default function PricingScreen() {
     const { width, height } = useWindowDimensions();
+    const [paystackHover, setPaystackHover] = useState(false);
+    const [otherMethodHover, setOtherMethodHover] = useState(false);
     
     const [fontsLoaded] = useFonts({
         Poppins_500Medium,
@@ -57,11 +60,27 @@ export default function PricingScreen() {
             </Text>
             
             <View style={[styles.buttonContainer, dynamicStyles.buttonContainer]}>
-                <TouchableOpacity style={[styles.paymentButton, dynamicStyles.button]}>
+                <TouchableOpacity
+                    style={[
+                        styles.paymentButton,
+                        dynamicStyles.button,
+                        paystackHover && styles.paymentButtonHover
+                    ]}
+                    onPressIn={() => setPaystackHover(true)}
+                    onPressOut={() => setPaystackHover(false)}
+                >
                     <Text style={styles.buttonText}>Paystack</Text>
                 </TouchableOpacity>
-                
-                <TouchableOpacity style={[styles.paymentButton, dynamicStyles.button]}>
+
+                <TouchableOpacity
+                    style={[
+                        styles.paymentButton,
+                        dynamicStyles.button,
+                        otherMethodHover && styles.paymentButtonHover
+                    ]}
+                    onPressIn={() => setOtherMethodHover(true)}
+                    onPressOut={() => setOtherMethodHover(false)}
+                >
                     <Text style={styles.buttonText}>Another Method</Text>
                 </TouchableOpacity>
             </View>
@@ -91,6 +110,9 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 25,
         alignItems: 'center',
+    },
+    paymentButtonHover: {
+        backgroundColor: 'hsl(180, 66%, 42%)',
     },
     buttonText: {
         color: 'white',

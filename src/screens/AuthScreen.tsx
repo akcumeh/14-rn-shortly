@@ -27,6 +27,10 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
     const [error, setError] = useState('');
     const [currentPhone, setCurrentPhone] = useState('');
     const { width, height } = useWindowDimensions();
+    const [buttonHover, setButtonHover] = useState(false);
+    const [skipHover, setSkipHover] = useState(false);
+    const [switchHover, setSwitchHover] = useState(false);
+    const [closeHover, setCloseHover] = useState(false);
 
     const [fontsLoaded] = useFonts({
         Poppins_500Medium,
@@ -135,13 +139,15 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
 
     return (
         <View style={[styles.container, dynamicStyles.container]}>
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => navigation.goBack()}
+                onPressIn={() => setCloseHover(true)}
+                onPressOut={() => setCloseHover(false)}
             >
                 <View style={styles.closeIcon}>
-                    <View style={[styles.closeDash, styles.closeDash1]} />
-                    <View style={[styles.closeDash, styles.closeDash2]} />
+                    <View style={[styles.closeDash, styles.closeDash1, closeHover && styles.closeDashHover]} />
+                    <View style={[styles.closeDash, styles.closeDash2, closeHover && styles.closeDashHover]} />
                 </View>
             </TouchableOpacity>
             
@@ -180,24 +186,36 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
                     />
 
                     <TouchableOpacity
-                        style={[styles.button, isLoading && styles.buttonDisabled]}
+                        style={[
+                            styles.button,
+                            isLoading && styles.buttonDisabled,
+                            buttonHover && !isLoading && styles.buttonHover
+                        ]}
                         onPress={handleSignup}
                         disabled={isLoading}
+                        onPressIn={() => setButtonHover(true)}
+                        onPressOut={() => setButtonHover(false)}
                     >
                         <Text style={styles.buttonText}>
                             {isLoading ? 'Creating Account...' : 'Create Account'}
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity 
-                        style={styles.skipButton}
+                    <TouchableOpacity
+                        style={[styles.skipButton, skipHover && styles.skipButtonHover]}
                         onPress={() => navigation.navigate('Saved URLs')}
+                        onPressIn={() => setSkipHover(true)}
+                        onPressOut={() => setSkipHover(false)}
                     >
                         <Text style={styles.skipButtonText}>Skip signup</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => { resetForm(); setStep('login'); }}>
-                        <Text style={styles.switchText}>
+                    <TouchableOpacity
+                        onPress={() => { resetForm(); setStep('login'); }}
+                        onPressIn={() => setSwitchHover(true)}
+                        onPressOut={() => setSwitchHover(false)}
+                    >
+                        <Text style={[styles.switchText, switchHover && styles.switchTextHover]}>
                             Already have an account? Sign in
                         </Text>
                     </TouchableOpacity>
@@ -216,17 +234,27 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
                     />
 
                     <TouchableOpacity
-                        style={[styles.button, isLoading && styles.buttonDisabled]}
+                        style={[
+                            styles.button,
+                            isLoading && styles.buttonDisabled,
+                            buttonHover && !isLoading && styles.buttonHover
+                        ]}
                         onPress={handleRequestOtp}
                         disabled={isLoading}
+                        onPressIn={() => setButtonHover(true)}
+                        onPressOut={() => setButtonHover(false)}
                     >
                         <Text style={styles.buttonText}>
                             {isLoading ? 'Sending OTP...' : 'Request OTP'}
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => { resetForm(); setStep('signup'); }}>
-                        <Text style={styles.switchText}>
+                    <TouchableOpacity
+                        onPress={() => { resetForm(); setStep('signup'); }}
+                        onPressIn={() => setSwitchHover(true)}
+                        onPressOut={() => setSwitchHover(false)}
+                    >
+                        <Text style={[styles.switchText, switchHover && styles.switchTextHover]}>
                             Don&apos;t have an account? Sign up
                         </Text>
                     </TouchableOpacity>
@@ -250,17 +278,27 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps = {}) {
                     />
 
                     <TouchableOpacity
-                        style={[styles.button, isLoading && styles.buttonDisabled]}
+                        style={[
+                            styles.button,
+                            isLoading && styles.buttonDisabled,
+                            buttonHover && !isLoading && styles.buttonHover
+                        ]}
                         onPress={handleVerifyOtp}
                         disabled={isLoading}
+                        onPressIn={() => setButtonHover(true)}
+                        onPressOut={() => setButtonHover(false)}
                     >
                         <Text style={styles.buttonText}>
                             {isLoading ? 'Verifying...' : 'Verify OTP'}
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => { resetForm(); setStep('login'); }}>
-                        <Text style={styles.switchText}>
+                    <TouchableOpacity
+                        onPress={() => { resetForm(); setStep('login'); }}
+                        onPressIn={() => setSwitchHover(true)}
+                        onPressOut={() => setSwitchHover(false)}
+                    >
+                        <Text style={[styles.switchText, switchHover && styles.switchTextHover]}>
                             Back to login
                         </Text>
                     </TouchableOpacity>
@@ -300,6 +338,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 20,
     },
+    buttonHover: {
+        backgroundColor: 'hsl(180, 66%, 42%)',
+    },
     buttonDisabled: {
         backgroundColor: Colors.neutral.gray400,
     },
@@ -317,6 +358,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.neutral.gray400,
     },
+    skipButtonHover: {
+        backgroundColor: Colors.neutral.gray400,
+        opacity: 0.2,
+    },
     skipButtonText: {
         color: Colors.neutral.gray500,
         fontSize: 16,
@@ -327,6 +372,9 @@ const styles = StyleSheet.create({
         color: Colors.primary.blue400,
         fontSize: 16,
         fontFamily: 'Poppins_500Medium',
+    },
+    switchTextHover: {
+        textDecorationLine: 'underline',
     },
     error: {
         color: Colors.secondary.red400,
@@ -358,7 +406,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 20,
         height: 2,
-        backgroundColor: Colors.neutral.gray600,
+        backgroundColor: Colors.neutral.gray500,
         top: 9,
     },
     closeDash1: {
@@ -366,5 +414,8 @@ const styles = StyleSheet.create({
     },
     closeDash2: {
         transform: [{ rotate: '-45deg' }],
+    },
+    closeDashHover: {
+        backgroundColor: Colors.neutral.gray950,
     },
 });

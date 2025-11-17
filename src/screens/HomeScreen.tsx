@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Animated, ScrollView } from 'react-native';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,8 @@ type HomeScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Home'
 export default function HomeScreen() {
     const { width, height } = useWindowDimensions();
     const navigation = useNavigation<HomeScreenNavigationProp>();
-    const isDesktop = width >= 640;
+    const isDesktop = width >= 800;
+    const [getStartedHover, setGetStartedHover] = useState(false);
     
     const imageFadeAnim = useRef(new Animated.Value(1)).current;
     const imageScaleAnim = useRef(new Animated.Value(1)).current;
@@ -78,7 +79,7 @@ export default function HomeScreen() {
             justifyContent: isDesktop ? 'space-between' as const : 'flex-start' as const,
         },
         illustration: {
-            width: isDesktop ? width * 0.5 : width,
+            width: isDesktop ? width * 0.75 : width,
             alignSelf: isDesktop ? 'auto' : 'flex-end',
         },
         contentPanel: {
@@ -101,13 +102,12 @@ export default function HomeScreen() {
         },
         getStartedButton: {
             width: isDesktop ? 200 : width * 0.6,
-            marginBottom: '2.5rem',
-
         },
     };
 
     return (
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.container, dynamicStyles.container]} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <View style={[styles.container, dynamicStyles.container, isDesktop && styles.desktopContainer]}>
             {!isDesktop && (
                 <Animated.View
                     style={[
@@ -170,9 +170,15 @@ export default function HomeScreen() {
                         }
                     ]}
                 >
-                    <TouchableOpacity 
-                        style={[styles.getStartedButton, dynamicStyles.getStartedButton]}
-                        onPress={() => navigation.navigate('Auth')}
+                    <TouchableOpacity
+                        style={[
+                            styles.getStartedButton,
+                            dynamicStyles.getStartedButton,
+                            getStartedHover && styles.getStartedButtonHover
+                        ]}
+                        onPress={() => navigation.navigate('Saved URLs')}
+                        onPressIn={() => setGetStartedHover(true)}
+                        onPressOut={() => setGetStartedHover(false)}
                     >
                         <Text style={styles.buttonText}>Get Started</Text>
                     </TouchableOpacity>
@@ -204,6 +210,7 @@ export default function HomeScreen() {
                     </View>
                 </Animated.View>
             )}
+            </View>
         </ScrollView>
     );
 }
@@ -213,9 +220,18 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'white',
     },
+    scrollContent: {
+        flexGrow: 1,
+        backgroundColor: 'white',
+    },
     container: {
         backgroundColor: 'white',
         paddingBottom: 40,
+    },
+    desktopContainer: {
+        maxWidth: 1024,
+        alignSelf: 'center',
+        width: '100%',
     },
     contentPanel: {
     },
@@ -232,6 +248,9 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 25,
         alignItems: 'center',
+    },
+    getStartedButtonHover: {
+        backgroundColor: 'hsl(180, 66%, 42%)',
     },
     buttonText: {
         color: 'white',

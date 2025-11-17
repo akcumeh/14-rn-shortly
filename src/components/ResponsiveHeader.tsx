@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts, Poppins_500Medium, Poppins_700Bold } from '@expo-google-fonts/poppins';
@@ -11,7 +12,13 @@ interface ResponsiveHeaderProps {
 const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }) => {
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
-    const isTabletOrDesktop = width >= 640;
+    const isTabletOrDesktop = width >= 800;
+    const [logoHover, setLogoHover] = useState(false);
+    const [featuresHover, setFeaturesHover] = useState(false);
+    const [pricingHover, setPricingHover] = useState(false);
+    const [resourcesHover, setResourcesHover] = useState(false);
+    const [loginHover, setLoginHover] = useState(false);
+    const [signupHover, setSignupHover] = useState(false);
     const [fontsLoaded] = useFonts({
         Poppins_500Medium,
         Poppins_700Bold,
@@ -38,32 +45,72 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ title, navigation }
         return (
             <View style={[styles.desktopHeader, dynamicStyles.desktopHeader]}>
                 <View style={styles.leftNav}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                        <Text style={styles.logo}>Shortly</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Home')}
+                        onPressIn={() => setLogoHover(true)}
+                        onPressOut={() => setLogoHover(false)}
+                    >
+                        <Text style={[styles.logo, logoHover && styles.logoHover]}>Shortly</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Features')}>
-                        <Text style={[styles.navItem, title === 'Features' && styles.activeNavItem]}>Features</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Features')}
+                        onPressIn={() => setFeaturesHover(true)}
+                        onPressOut={() => setFeaturesHover(false)}
+                    >
+                        <Text style={[
+                            styles.navItem,
+                            title === 'Features' && styles.activeNavItem,
+                            featuresHover && title !== 'Features' && styles.navItemHover
+                        ]}>
+                            Features
+                        </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Pricing')}>
-                        <Text style={[styles.navItem, title === 'Pricing' && styles.activeNavItem]}>Pricing</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Pricing')}
+                        onPressIn={() => setPricingHover(true)}
+                        onPressOut={() => setPricingHover(false)}
+                    >
+                        <Text style={[
+                            styles.navItem,
+                            title === 'Pricing' && styles.activeNavItem,
+                            pricingHover && title !== 'Pricing' && styles.navItemHover
+                        ]}>
+                            Pricing
+                        </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Saved URLs')}>
-                        <Text style={[styles.navItem, title === 'Saved URLs' && styles.activeNavItem]}>Resources</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Saved URLs')}
+                        onPressIn={() => setResourcesHover(true)}
+                        onPressOut={() => setResourcesHover(false)}
+                    >
+                        <Text style={[
+                            styles.navItem,
+                            title === 'Saved URLs' && styles.activeNavItem,
+                            resourcesHover && title !== 'Saved URLs' && styles.navItemHover
+                        ]}>
+                            Resources
+                        </Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.authButtons}>
-                    <TouchableOpacity onPress={() => {
-                        console.log('Login button pressed');
-                        navigation.navigate('Auth', { mode: 'login' });
-                    }}>
-                        <Text style={styles.loginButton}>Login</Text>
+                    <TouchableOpacity
+                        onPress={() => {
+                            console.log('Login button pressed');
+                            navigation.navigate('Auth', { mode: 'login' });
+                        }}
+                        onPressIn={() => setLoginHover(true)}
+                        onPressOut={() => setLoginHover(false)}
+                    >
+                        <Text style={[styles.loginButton, loginHover && styles.loginButtonHover]}>Login</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={styles.signupButton}
+                    <TouchableOpacity
+                        style={[styles.signupButton, signupHover && styles.signupButtonHover]}
                         onPress={() => {
                             console.log('Signup button pressed');
                             navigation.navigate('Auth', { mode: 'signup' });
                         }}
+                        onPressIn={() => setSignupHover(true)}
+                        onPressOut={() => setSignupHover(false)}
                     >
                         <Text style={styles.signupButtonText}>Sign Up</Text>
                     </TouchableOpacity>
@@ -109,11 +156,17 @@ const styles = StyleSheet.create({
         color: Colors.neutral.gray950,
         letterSpacing: -0.5,
     },
+    logoHover: {
+        opacity: 0.8,
+    },
     navItem: {
         fontSize: 18,
         fontFamily: 'Poppins_500Medium',
         color: Colors.neutral.gray500,
         letterSpacing: -0.5,
+    },
+    navItemHover: {
+        color: Colors.neutral.gray900,
     },
     activeNavItem: {
         backgroundColor: Colors.neutral.gray500,
@@ -134,11 +187,17 @@ const styles = StyleSheet.create({
         color: Colors.neutral.gray500,
         letterSpacing: -0.5,
     },
+    loginButtonHover: {
+        color: Colors.primary.blue400,
+    },
     signupButton: {
         backgroundColor: Colors.primary.blue400,
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 25,
+    },
+    signupButtonHover: {
+        backgroundColor: 'hsl(180, 66%, 42%)',
     },
     signupButtonText: {
         color: 'white',

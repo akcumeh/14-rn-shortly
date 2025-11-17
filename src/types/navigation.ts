@@ -6,6 +6,7 @@ export type RootDrawerParamList = {
     Features: undefined;
     Pricing: undefined;
     'Saved URLs': undefined;
+    Auth: { mode: 'login' | 'signup' };
 };
 
 export type DrawerNavigationProps<T extends keyof RootDrawerParamList> = {
